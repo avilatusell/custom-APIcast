@@ -1,0 +1,8 @@
+luacov.*.out
+local/
+t/servroot/
+doc/api/
+node_modules
+.vagrant/
+apicast/logs/
+*.rock
