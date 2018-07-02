@@ -5,7 +5,7 @@
 local whitelist = require "whitelist"
 
 local apicast = require('apicast').new()
-local proxy = require 'proxy'
+local cache_handler = require 'cache_handler'
 
 local _M = {
   _VERSION = '3.0.1',
@@ -31,7 +31,7 @@ cache_handler.handlers.strict = function (cache, cached_key, response, ttl)
 
   else if response.status == 504 then
     log("Debug: timeout while trying to reach 3scale") 
-    local credentials = ngx.var.credentials 
+    local credentials = ngx.var.credentials -- the value of ngx.var.credentials is set in line 199 from proxy.lua
     if whitelist[credentials.app_id] then
       ngx.log(ngx.INFO, 'apicast cache write key: ', cached_key, ', ttl: ', ttl )
       cache:set(cached_key, 200, ttl or 0)
