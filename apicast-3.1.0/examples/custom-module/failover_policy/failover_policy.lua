@@ -51,7 +51,7 @@ function _M:authorize(service, usage, credentials, ttl)
     if not self:handle_backend_response(cached_key, res, ttl) then
       error_authorization_failed(service)
     end
-  end
+
 end
 
 return _M
