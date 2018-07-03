@@ -5,7 +5,7 @@
 local whitelist = require "whitelist"
 
 local apicast = require('apicast').new()
-local cache_handler = require 'cache_handler'
+local cache_handler = require('backend.cache_handler')
 
 local _M = {
   _VERSION = '3.0.1',
