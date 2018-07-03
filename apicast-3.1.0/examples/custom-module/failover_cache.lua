@@ -21,6 +21,7 @@ end
 
 cache_handler.handlers.strict = function (cache, cached_key, response, ttl)
   if response.status == 200 then
+    ngx.log(ngx.DEBUG, "using failover_cache module")
     -- cached_key is set in post_action and it is in in authorize
     -- so to not write the cache twice lets write it just in authorize
     if ngx.var.cached_key ~= cached_key then
@@ -30,7 +31,7 @@ cache_handler.handlers.strict = function (cache, cached_key, response, ttl)
     return true
 
   elseif response.status == 504 then
-    log("Debug: timeout while trying to reach 3scale") 
+    ngx.log("Debug: timeout while trying to reach 3scale") 
     local credentials = ngx.var.credentials -- the value of ngx.var.credentials is set in line 199 from proxy.lua
     if whitelist[credentials.app_id] then
       ngx.log(ngx.INFO, 'apicast cache write key: ', cached_key, ', ttl: ', ttl )
@@ -39,6 +40,7 @@ cache_handler.handlers.strict = function (cache, cached_key, response, ttl)
     return true
 
   else
+    ngx.log(ngx.DEBUG, "using failover_cache module")
     ngx.log(ngx.NOTICE, 'apicast cache delete key: ', cached_key, ' cause status ', response.status)
     cache:delete(cached_key)
     return false, 'not authorized'
