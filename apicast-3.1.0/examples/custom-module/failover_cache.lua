@@ -29,7 +29,7 @@ cache_handler.handlers.strict = function (cache, cached_key, response, ttl)
     end
     return true
 
-  else if response.status == 504 then
+  elseif response.status == 504 then
     log("Debug: timeout while trying to reach 3scale") 
     local credentials = ngx.var.credentials -- the value of ngx.var.credentials is set in line 199 from proxy.lua
     if whitelist[credentials.app_id] then
@@ -43,6 +43,6 @@ cache_handler.handlers.strict = function (cache, cached_key, response, ttl)
     cache:delete(cached_key)
     return false, 'not authorized'
   end
-end
 
+end
 return _M
