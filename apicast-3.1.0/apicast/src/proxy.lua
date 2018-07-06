@@ -211,8 +211,21 @@ function _M:authorize(service, usage, credentials, ttl)
     -- set cached_key to nil to avoid doing the authrep in post_action
     ngx.var.cached_key = nil
 
-    local res = http.get(internal_location)
-    
+    --local res = http.get(internal_location)
+    local res =  {
+      body = '<?xml version="1.0" encoding="UTF-8"?><status><authorized>true</authorized><plan>Basic</plan></status>',
+      header = {
+        ["Access-Control-Allow-Origin"] = "*",
+        ["Access-Control-Expose-Headers"] = "ETag, Link, 3scale-rejection-reason",
+        ["Content-Length"] = 102,
+        ["Content-Type"] = "application/vnd.3scale-v2.0+xml",
+        ["X-Content-Type-Options"] = "nosniff"
+      },
+      status = 504,
+      truncated = false
+    }
+
+    ---{ body = something, headers = something, status = 504, truncated = something }
     ngx.log(ngx.DEBUG, "response object: " .. require('inspect')(res)) -- inspecting the response to see how is the res object
 
     if not self:handle_backend_response(cached_key, res, ttl) then

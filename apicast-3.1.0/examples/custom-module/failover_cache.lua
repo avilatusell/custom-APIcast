@@ -31,7 +31,7 @@ cache_handler.handlers.strict = function (cache, cached_key, response, ttl)
     return true
 
   elseif response.status == 504 then
-    ngx.log("Debug: timeout while trying to reach 3scale") 
+    ngx.log(ngx.DEBUG,"Debug: timeout while trying to reach 3scale") 
     local credentials = ngx.var.credentials -- the value of ngx.var.credentials is set in line 199 from proxy.lua
     if whitelist[credentials.app_id] then
       ngx.log(ngx.INFO, 'apicast cache write key: ', cached_key, ', ttl: ', ttl )
