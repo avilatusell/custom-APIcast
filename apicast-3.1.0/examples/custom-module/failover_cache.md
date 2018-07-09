@@ -20,7 +20,7 @@ It adds the following logic:
 
  and the file `whitelist.lua` with the allowed credentials when having a 504 error. 
 
-In order to test it, the response from `proxy.lua in the Authorize function has been modified (hardcoded) as following: 
+In order to test it, the response from `proxy.lua` in the Authorize function has been modified (hardcoded) as following: 
 
 First, added a log to see how is the response: 
 `ngx.log(ngx.DEBUG, "response object: " .. require('inspect')(res))`
