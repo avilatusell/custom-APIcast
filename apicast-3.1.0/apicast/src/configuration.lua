@@ -65,6 +65,7 @@ local function check_rule(req, rule, usage_t, matched_rules, params)
   end
 end
 
+--[[
 local function get_auth_params(method)
   local params
 
@@ -75,8 +76,55 @@ local function get_auth_params(method)
     params = ngx.req.get_post_args()
   end
 
+  ngx.log(ngx.DEBUG, "params: " .. require('inspect')(params)) --line added to see what returns
+  
   return params
 end
+
+]]
+
+
+--customization
+
+
+local base_sixty_four = require 'base_sixty_four'
+
+function first_values(a)
+  r = {}
+  for k,v in pairs(a) do
+    if type(v) == "table" then
+      r[k] = v[1]
+    else
+      r[k] = v
+    end
+  end
+  return r
+end
+
+
+function extractAuthHeader()
+  local params = {}
+  params = ngx.req.get_headers()
+
+  if params["Authorization"] then
+    local m = ngx.re.match(params["Authorization"], "Basic\\s(.+)")
+    local decoded = base_sixty_four.dec(m[1])
+
+    params.app_id = string.split(decoded, ":")[1]
+    params.app_id = params.app_id:gsub("%s+", "") --trim spaces
+
+    params.app_key = string.split(decoded, ":")[2]
+    params.app_key = params.app_key:gsub("%s+", "") --trim spaces
+  end
+  return first_values(params)
+  
+  ngx.log(ngx.DEBUG, "first_values: " .. require('inspect')(first_values))
+end
+
+
+
+-- end of customization
+
 
 local regex_variable = '\\{[-\\w_]+\\}'
 
@@ -141,8 +189,11 @@ function _M.parse_service(service)
       error_auth_missing = proxy.error_auth_missing,
       auth_failed_headers = proxy.error_headers_auth_failed,
       auth_missing_headers = proxy.error_headers_auth_missing,
+      --limits_exceeded_headers = 'text/plain; charset=us-ascii',--customization added in custom_error.lua
+      --error_limits_exceeded = 'rate limit exceeded',--customization added in custom_error.lua
       error_no_match = proxy.error_no_match,
       no_match_headers = proxy.error_headers_no_match,
+      --limits_exceeded_status = 429,--customization added in custom_error.lua
       no_match_status = proxy.error_status_no_match or 404,
       auth_failed_status = proxy.error_status_auth_failed or 403,
       auth_missing_status = proxy.error_status_auth_missing or 401,
