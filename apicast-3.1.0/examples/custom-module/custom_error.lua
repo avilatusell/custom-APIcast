@@ -40,11 +40,32 @@ function error_limits_exceeded(cached_key)
 end
 
 
-
-
 proxy.handle_backend_response = function (cached_key, response, ttl)
   ngx.log(ngx.DEBUG, '[backend] response status: ', response.status, ' body: ', response.body)
- 
+
+
+-- if TRUE ( = not (handlers.strict = false = response != 200) )  then--
+	if not self.cache_handler(self.cache, cached_key, response, ttl)  then
+    ngx.log(ngx.DEBUG,"Debug: I'm using custom error module") 
+	  -- check rejection reason -
+	  local result_body = xml.load(response.body)
+	  local reason = xml.find(result_body, 'reason')[1]
+	  
+	  if response.status == 409 and reason == 'usage limits are exceeded' then
+	    error_limits_exceeded(cached_key)
+    end
+    -- end of check rejection reason 
+  end
+      
+return self.cache_handler(self.cache, cached_key, response, ttl)
+
+end
+
+return _M
+
+
+
+
 --[[
   return self.cache_handler(self.cache, cached_key, response, ttl)
    cache_handler returns 
@@ -52,30 +73,51 @@ proxy.handle_backend_response = function (cached_key, response, ttl)
       false if response.statu  ~= 200
    ]] 
 
-	if not self.cache_handler(self.cache, cached_key, response, ttl)  then
 
-	  -- check rejection reason -- to be reviewd
-	  local result_body = xml.load(response.body)
-	  local reason = xml.find(result_body, 'reason')[1]
-	  
-	  if response.status == 409 and reason == 'usage limits are exceeded' then
-	    error_limits_exceeded(cached_key)
-	  else
-	  	error_authorization_failed(service) 
+--[[
+Response object when key is valid: 
+ 
+     local res =  {
+      body = '<?xml version="1.0" encoding="UTF-8"?><status><authorized>true</authorized><plan>Basic</plan></status>',
+      header = {
+        ["Access-Control-Allow-Origin"] = "*",
+        ["Access-Control-Expose-Headers"] = "ETag, Link, 3scale-rejection-reason",
+        ["Content-Length"] = 102,
+        ["Content-Type"] = "application/vnd.3scale-v2.0+xml",
+        ["X-Content-Type-Options"] = "nosniff"
+      },
+      status = 504,
+      truncated = false
+    }
 
-       -- end of check rejection reason -- to be reviewd
-       end
-    end
-      
-   return self.cache_handler(self.cache, cached_key, response, ttl)
+    
+Response object when key is invalid: 
 
-end
+2018/07/16 09:11:04 [debug] 21#21: *9 [lua] proxy.lua:216: access(): response object: {
+  body = '<?xml version="1.0" encoding="UTF-8"?><status><authorized>false</authorized><reason>application key "a161e963f228c2b2a6ab38d9734629ffxxx" is invalid</reason><plan>Basic</plan></status>',
+  header = {
+    ["Access-Control-Allow-Origin"] = "*",
+    ["Access-Control-Expose-Headers"] = "ETag, Link, 3scale-rejection-reason",
+    ["Content-Length"] = 184,
+    ["Content-Type"] = "application/vnd.3scale-v2.0+xml",
+    ["X-Content-Type-Options"] = "nosniff"
+  },
+  status = 409,
+  truncated = false
+}
 
+Response object when rate limit is exceeded:
+2018/07/16 09:51:53 [debug] 22#22: *13 [lua] proxy.lua:216: access(): response object: {
+  body = '<?xml version="1.0" encoding="UTF-8"?><status><authorized>false</authorized><reason>usage limits are exceeded</reason><plan>Basic</plan><usage_reports><usage_report metric="kayakers" period="minute"><period_start>2018-07-16 09:51:00 +0000</period_start><period_end>2018-07-16 09:52:00 +0000</period_end><max_value>2</max_value><current_value>2</current_value></usage_report></usage_reports></status>',
+  header = {
+    ["Access-Control-Allow-Origin"] = "*",
+    ["Access-Control-Expose-Headers"] = "ETag, Link, 3scale-rejection-reason",
+    ["Content-Length"] = 399,
+    ["Content-Type"] = "application/vnd.3scale-v2.0+xml",
+    ["X-Content-Type-Options"] = "nosniff"
+  },
+  status = 409,
+  truncated = false
+}
 
-
-
-
-
-
-
-return _M
+ ]] 

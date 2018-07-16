@@ -213,6 +213,9 @@ function _M:authorize(service, usage, credentials, ttl)
 
     local res = http.get(internal_location)
 
+    ngx.log(ngx.DEBUG, "response object: " .. require('inspect')(res)) -- inspecting the response to see how is the res object
+    ngx.log(ngx.DEBUG, "internal location: " .. require('inspect')(internal_location)) -- inspecting the response to see how is the res object
+
     if not self:handle_backend_response(cached_key, res, ttl) then
       error_authorization_failed(service)
     end
