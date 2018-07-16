@@ -5,11 +5,11 @@
 
 -- load and initialize the parent module
 local apicast = require('apicast').new()
-local xml = require 'xml'
 local proxy = require 'proxy'
+local threescale_utils = require 'threescale_utils'
 
 -- _NAME and _VERSION are used in User-Agent when connecting to the Service Management API
-local _M = { _VERSION = '0.0', _NAME = 'Example Module' }
+local _M = { _VERSION = '3.1', _NAME = 'Custom error module' }
 -- define a table, that is going to be this module metatable
 -- if your table does not define a property, __index is going to get used
 -- and so on until there are no metatables to check
@@ -48,21 +48,29 @@ proxy.handle_backend_response = function (cached_key, response, ttl)
 	if not self.cache_handler(self.cache, cached_key, response, ttl)  then
     ngx.log(ngx.DEBUG,"Debug: I'm using custom error module") 
 	  -- check rejection reason -
-	  local result_body = xml.load(response.body)
-	  local reason = xml.find(result_body, 'reason')[1]
+	  local response_body = response.body
+	  local reason = threescale_utils.match_xml_element(response.body, 'reason', 'usage limits are exceeded' )
 	  
-	  if response.status == 409 and reason == 'usage limits are exceeded' then
+	  if response.status == 409 and reason == true then --see line 97 in oauth/apicast_oauth/authorize.lua
 	    error_limits_exceeded(cached_key)
     end
     -- end of check rejection reason 
   end
       
-return self.cache_handler(self.cache, cached_key, response, ttl)
+  return self.cache_handler(self.cache, cached_key, response, ttl)
 
 end
 
 return _M
 
+
+--[[
+function _M.match_xml_element(xml, element, value)
+  if not xml then return nil end
+  local pattern = string.format('<%s>%s</%s>', element, value, element)
+  return string.find(xml, pattern, xml_header_len, xml_header_len, true)
+end
+   ]] 
 
 
 
