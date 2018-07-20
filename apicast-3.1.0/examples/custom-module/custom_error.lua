@@ -40,7 +40,7 @@ function error_limits_exceeded(cached_key)
 end
 
 
-proxy.handle_backend_response = function (cached_key, response, ttl)
+proxy.handle_backend_response = function (self, cached_key, response, ttl) -- adding "self" as _M:handle_backend_response in proxy.lua
   ngx.log(ngx.DEBUG, '[backend] response status: ', response.status, ' body: ', response.body)
 
 
@@ -48,7 +48,7 @@ proxy.handle_backend_response = function (cached_key, response, ttl)
 	if not self.cache_handler(self.cache, cached_key, response, ttl)  then
     ngx.log(ngx.DEBUG,"Debug: I'm using custom error module") 
 	  -- check rejection reason -
-	  local response_body = response.body
+
 	  local reason = threescale_utils.match_xml_element(response.body, 'reason', 'usage limits are exceeded' )
 	  
 	  if response.status == 409 and reason == true then --see line 97 in oauth/apicast_oauth/authorize.lua
