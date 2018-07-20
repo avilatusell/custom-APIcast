@@ -31,12 +31,14 @@ function _M.new()
 end
 
 
-function error_limits_exceeded(cached_key)
+local function error_limits_exceeded(cached_key)
    ngx.log(ngx.INFO, 'rate limit exceed', cached_key)
+   ngx.var.cached_key = nil -- added  
    ngx.status = limits_exceeded.limits_exceeded_status
    ngx.header.content_type = limits_exceeded.limits_exceeded_headers
    ngx.print(limits_exceeded.error_limits_exceeded)
-   ngx.exit(429) 
+ 
+   return ngx.exit(ngx.HTTP_OK) -- changed 
 end
 
 
