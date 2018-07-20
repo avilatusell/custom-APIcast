@@ -37,7 +37,6 @@ local function error_limits_exceeded(cached_key)
    ngx.status = limits_exceeded.limits_exceeded_status
    ngx.header.content_type = limits_exceeded.limits_exceeded_headers
    ngx.print(limits_exceeded.error_limits_exceeded)
- 
    return ngx.exit(ngx.HTTP_OK) -- changed 
 end
 
@@ -52,8 +51,9 @@ proxy.handle_backend_response = function (self, cached_key, response, ttl) -- ad
 	  -- check rejection reason -
 
 	  local reason = threescale_utils.match_xml_element(response.body, 'reason', 'usage limits are exceeded' )
+    ngx.log(ngx.DEBUG, "the value of the reason is: " .. require('inspect')(reason))
 	  
-	  if response.status == 409 and reason == true then --see line 97 in oauth/apicast_oauth/authorize.lua
+	  if response.status == 409 and reason  then --see line 97 in oauth/apicast_oauth/authorize.lua
 	    error_limits_exceeded(cached_key)
     end
     -- end of check rejection reason 
