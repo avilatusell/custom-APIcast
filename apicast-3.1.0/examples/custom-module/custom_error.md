@@ -56,3 +56,19 @@ When we make a request and the limits are exceeded, the response is:
     <
     * Connection #0 to host localhost left intact
     rate limit exceeded
+
+
+The Docker command to start the gateway is: 
+
+```
+docker run --rm --name apicast -p 8080:8080 -p 8090:8090 \
+ -e THREESCALE_PORTAL_ENDPOINT=https://<secret_token>@<account>-admin.3scale.net \
+ -e THREESCALE_DEPLOYMENT_ENV=staging \
+ -e APICAST_MANAGEMENT_API=debug \
+ -e APICAST_CONFIGURATION_LOADER=lazy \
+ -e APICAST_LOG_LEVEL=debug \
+ -v /Users/avilatus/projects/apicast_31/apicast-3.1.0/apicast/src/proxy.lua:/opt/app-root/src/src/proxy.lua \
+ -v $(pwd)/custom_error.lua:/opt/app-root/src/src/custom_error.lua \
+ -e APICAST_MODULE=custom_error \
+ registry.access.redhat.com/3scale-amp21/apicast-gateway:latest
+ ```
