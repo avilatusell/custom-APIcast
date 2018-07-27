@@ -397,6 +397,8 @@ function _M:post_action()
     local service = ngx.ctx.service or self.configuration:find_by_id(service_id)
     self:set_backend_upstream(service)
 
+    ngx.log(ngx.DEBUG, "the service object is: " .. require('inspect')(service))
+
     local auth_uri = service.backend_version == 'oauth' and 'threescale_oauth_authrep' or 'threescale_authrep'
     local res = http.get("/".. auth_uri .."?log=" .. response_codes_encoded_data())
 
