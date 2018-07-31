@@ -196,9 +196,34 @@ function _M:authorize(service, usage, credentials, ttl)
 
   -- usage and credentials are expected by the internal endpoints
   ngx.var.usage = usage
+  ngx.log(ngx.DEBUG, "the value of ngx.var.usage is: " .. require('inspect')(ngx.var.usage)) --added. 
+
+--[[
+  VALUE OF THE ngx.var.usage
+  ---------------------------
+    Log: the value of ngx.var.usage is: "usage%5Bkayakers%5D=1"
+    Using a URL decoding app: https://www.urldecoder.org/, the result is: 
+
+    usage[kayakers]=1
+
+]]
+
   ngx.var.credentials = credentials
   -- NYI: return to lower frame
   local cached_key = ngx.var.cached_key .. ":" .. usage
+  ngx.log(ngx.DEBUG, "the value of cached_key is: " .. require('inspect')(cached_key)) --added. 
+
+--[[
+
+  VALUE OF THE CACHED_KEY, now we added the usage
+  ------------------------
+  Log: the value of cached_key is: "2555417737778:1549a23c1f47b60f6cc1649d8bd4153c:usage%5Bkayakers%5D=1"
+  Using a URL decoding app: https://www.urldecoder.org/, the result is: 
+     Service ID --          User_key                    -- Usage
+    2555417737778:1549a23c1f47b60f6cc1649d8bd4153c:usage[kayakers]=1
+]]
+
+
   local cache = self.cache
   local is_known = cache:get(cached_key)
 
